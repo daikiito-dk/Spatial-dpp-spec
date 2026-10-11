@@ -1,0 +1,15 @@
+[package]
+name = "sdpp-wasm"
+description = "WASM/TypeScript bindings for sdpp-core (spatial-dpp v0.1.0)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+sdpp-core = { path = "../sdpp-core" }
+serde_json = { workspace = true }
+wasm-bindgen = { workspace = true }

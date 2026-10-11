@@ -1,0 +1,138 @@
+{
+  "metadata": {
+    "spec_version": "0.1.0",
+    "document_id": "urn:product:ev-battery-pack-2026",
+    "name": "Generic EV Battery Pack Module A",
+    "created": "2026-09-01T00:00:00Z",
+    "author": "spatial-dpp reference fixtures",
+    "language": "en"
+  },
+  "x_note": "Vendor extension keys are allowed by the schema and ignored by the v0.1.0 reference implementation.",
+  "objects": [
+    {
+      "id": "ev_pack",
+      "label": "EV Battery Pack",
+      "geometry": {
+        "format": "gltf",
+        "uri": "urn:example:meshes/ev-pack-v3",
+        "hash": {
+          "algorithm": "sha256",
+          "value": "3fa85f64c57145a28b4b2c7a9b1d4e6f0a1b2c3d4e5f60718293a4b5c6d7e8f0"
+        },
+        "locator": "#/nodes/0",
+        "scale_hint_m": [0.6, 0.25, 0.15]
+      },
+      "physical": {
+        "mass_kg": 12.4,
+        "center_of_mass": [0.5, 0.5, 0.41],
+        "density_kg_m3": 1850.0,
+        "friction": { "static": 0.6, "kinetic": 0.4 },
+        "stiffness": {
+          "youngs_modulus_pa": 69000000000.0,
+          "shear_modulus_pa": 26000000000.0,
+          "poisson_ratio": 0.33
+        },
+        "joints": [
+          {
+            "id": "hinge_lid",
+            "type": "revolute",
+            "axis": [0.0, 0.0, 1.0],
+            "limits": { "lower_deg": -45.0, "upper_deg": 45.0 },
+            "parent": "ev_pack",
+            "child": "pack_lid"
+          }
+        ]
+      },
+      "compliance": {
+        "bill_of_materials": [
+          {
+            "part_id": "cover_top",
+            "label": "Aluminum Top Housing Cover",
+            "quantity": 1,
+            "material_id": "al_6082",
+            "mass_kg": 1.9
+          },
+          {
+            "part_id": "m6_screw",
+            "label": "M6 Torx Head Screw",
+            "quantity": 8,
+            "material_id": "steel_galv"
+          },
+          {
+            "part_id": "cell_array",
+            "label": "Li-Ion Pouch Cell Array",
+            "quantity": 1,
+            "material_id": "li_ion_cells",
+            "mass_kg": 7.4
+          }
+        ],
+        "material_composition": [
+          { "material_id": "al_6082", "label": "Aluminum 6082-T6", "fraction": 0.25 },
+          { "material_id": "li_ion_cells", "label": "Lithium-Ion Cells", "fraction": 0.55 },
+          { "material_id": "steel_galv", "label": "Galvanized Steel", "fraction": 0.08 },
+          { "material_id": "pc_abs", "label": "PC-ABS Housing", "fraction": 0.12 }
+        ],
+        "recyclability_rate": 0.62,
+        "dpp": {
+          "passport_id": "urn:dpp:eu:ev-pack-2026",
+          "sbom_ref": "https://example.com/sbom/ev-pack-2026.json",
+          "hbom_ref": "urn:hbom:ev-pack-2026",
+          "repairability_score": 0.71
+        },
+        "disassembly": {
+          "plan_ref": "https://open-disassembly.org/plans/ev-battery-pack-2026.odbom.json",
+          "steps": [
+            { "order": 1, "action": "unfasten", "target": "m6_screw", "tool": "torx_t30" },
+            { "order": 2, "action": "lift", "target": "cover_top", "hazard": "sharp" },
+            {
+              "order": 3,
+              "action": "deactivate",
+              "target": "cell_array",
+              "hazard": "thermal_runaway",
+              "note": "Discharge bus bars below 60 V before lifting the cell array."
+            }
+          ]
+        },
+        "cra": {
+          "conformance": "conformant",
+          "support_period_until": "2032-09-01T00:00:00Z",
+          "vulnerability_disclosure_uri": "https://example.com/.well-known/security.txt",
+          "logs": [
+            { "timestamp": "2026-09-01T00:00:00Z", "event": "sbom_published", "detail": "CycloneDX 1.6, 14 components" },
+            { "timestamp": "2026-09-02T00:00:00Z", "event": "pentest_completed" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "pack_lid",
+      "label": "Service Cover Lid",
+      "geometry": {
+        "format": "gltf",
+        "uri": "urn:example:meshes/ev-pack-lid-v3",
+        "hash": {
+          "algorithm": "sha256",
+          "value": "1b4f0e98519724a5b0a1b2c3d4e5f60718293a4b5c6d7e8f0a1b2c3d4e5f6071"
+        },
+        "locator": "#/nodes/1"
+      },
+      "physical": {
+        "mass_kg": 1.9,
+        "center_of_mass": [0.5, 0.5, 0.5],
+        "friction": { "static": 0.5 },
+        "stiffness": { "youngs_modulus_pa": 2300000000.0 }
+      },
+      "compliance": {
+        "bill_of_materials": [
+          { "part_id": "lid_shell", "label": "PC-ABS Shell", "quantity": 1, "material_id": "pc_abs" }
+        ],
+        "material_composition": [
+          { "material_id": "pc_abs", "label": "PC-ABS Housing", "fraction": 1.0 }
+        ],
+        "recyclability_rate": 0.9,
+        "dpp": { "passport_id": "urn:dpp:eu:ev-pack-lid-2026" },
+        "cra": { "conformance": "partial" }
+      }
+    }
+  ]
+}

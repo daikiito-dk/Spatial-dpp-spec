@@ -1,0 +1,14 @@
+[package]
+name = "sdpp-core"
+description = "Core types, validation, and codecs for the Spatial DPP (spatial-dpp) specification v0.1.0"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+rmp-serde = { workspace = true }
+prost = { workspace = true }
+thiserror = { workspace = true }

@@ -1,0 +1,134 @@
+// Spatial DPP v0.1.0 — Protocol Buffers schema.
+// Normative model: SPEC.md. This file is the wire contract for binary transport.
+// Enumerated values are carried as strings for forward compatibility (SPEC.md 7.4).
+syntax = "proto3";
+
+package sdpp.v0_1_0;
+
+message SpatialDppDocument {
+  DocumentMetadata metadata = 1;
+  repeated SpatialObject objects = 2;
+}
+
+message DocumentMetadata {
+  string spec_version = 1;
+  string document_id = 2;
+  string name = 3;
+  string created = 4;          // RFC 3339
+  optional string author = 5;
+  optional string language = 6;
+}
+
+message SpatialObject {
+  string id = 1;
+  string label = 2;
+  GeometryRef geometry = 3;
+  PhysicalProperties physical = 4;
+  ComplianceRecord compliance = 5;
+}
+
+message ContentHash {
+  string algorithm = 1;        // "sha256" | "sha512"
+  string value = 2;            // lowercase hex
+}
+
+message GeometryRef {
+  string format = 1;           // gltf | usda | usdc | step | obj | stl
+  string uri = 2;
+  optional ContentHash hash = 3;
+  optional string locator = 4;
+  repeated double scale_hint_m = 5;  // exactly 3 when present
+}
+
+message FrictionModel {
+  double static = 1;           // serde name "static" in JSON
+  optional double kinetic = 2;
+}
+
+message Stiffness {
+  double youngs_modulus_pa = 1;
+  optional double shear_modulus_pa = 2;
+  optional double poisson_ratio = 3;
+}
+
+message JointLimits {
+  optional double lower_deg = 1;
+  optional double upper_deg = 2;
+  optional double lower_m = 3;
+  optional double upper_m = 4;
+}
+
+message KinematicJoint {
+  string id = 1;
+  string type = 2;             // revolute | prismatic | fixed | spherical
+  repeated double axis = 3;    // unit vector, 3 elements when present
+  optional JointLimits limits = 4;
+  string parent = 5;           // object id in the same document
+  string child = 6;            // object id in the same document
+}
+
+message PhysicalProperties {
+  double mass_kg = 1;
+  repeated double center_of_mass = 2;  // bbox-normalized [0,1], 3 elements
+  optional double density_kg_m3 = 3;
+  optional FrictionModel friction = 4;
+  optional Stiffness stiffness = 5;
+  repeated KinematicJoint joints = 6;
+}
+
+message BomEntry {
+  string part_id = 1;
+  string label = 2;
+  uint32 quantity = 3;         // >= 1 enforced semantically (V-15)
+  optional string material_id = 4;
+  optional double mass_kg = 5;
+}
+
+message MaterialFraction {
+  string material_id = 1;
+  string label = 2;
+  double fraction = 3;         // (0, 1]; sum rule enforced semantically (V-09)
+}
+
+message DppRecord {
+  string passport_id = 1;
+  optional string sbom_ref = 2;
+  optional string hbom_ref = 3;
+  optional double repairability_score = 4;
+}
+
+message DisassemblyStep {
+  uint32 order = 1;            // strictly increasing from 1 (V-12)
+  string action = 2;           // unfasten | cut | lift | release | drain | deactivate | other
+  string target = 3;           // part_id or object id (V-12)
+  optional string tool = 4;
+  optional string hazard = 5;  // none | thermal_runaway | chemical | asbestos | electrical | sharp | crush
+  optional string note = 6;
+}
+
+message DisassemblyPlan {
+  optional string plan_ref = 1;   // OD-BOM (DeCAD) document URI when present
+  repeated DisassemblyStep steps = 2;
+}
+
+message CraLogEntry {
+  string timestamp = 1;        // RFC 3339
+  string event = 2;
+  optional string detail = 3;
+}
+
+message CraRecord {
+  string conformance = 1;      // conformant | partial | unknown
+  optional string support_period_until = 2;
+  optional string vulnerability_disclosure_uri = 3;
+  repeated CraLogEntry logs = 4;
+}
+
+message ComplianceRecord {
+  repeated BomEntry bill_of_materials = 1;
+  repeated MaterialFraction material_composition = 2;
+  double recyclability_rate = 3;       // [0, 1]
+  optional DppRecord dpp = 4;
+  optional DisassemblyPlan disassembly = 5;
+  optional CraRecord cra = 6;
+}

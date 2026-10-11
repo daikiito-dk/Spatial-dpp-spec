@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "spec_version": "0.1.0",
+    "document_id": "urn:product:drone-rotor-arm-2026",
+    "name": "Quadrotor Rotor Arm Assembly",
+    "created": "2026-09-05T08:30:00Z",
+    "author": "spatial-dpp reference fixtures"
+  },
+  "objects": [
+    {
+      "id": "arm",
+      "label": "Quadrotor Arm",
+      "geometry": {
+        "format": "step",
+        "uri": "urn:example:cad/rotor-arm-v2",
+        "hash": {
+          "algorithm": "sha512",
+          "value": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a089f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+        },
+        "locator": "#41=PRODUCT('rotor_arm')"
+      },
+      "physical": {
+        "mass_kg": 0.32,
+        "center_of_mass": [0.5, 0.5, 0.12],
+        "density_kg_m3": 1550.0,
+        "friction": { "static": 0.35 },
+        "stiffness": { "youngs_modulus_pa": 135000000000.0, "poisson_ratio": 0.28 },
+        "joints": [
+          {
+            "id": "slide_motor",
+            "type": "prismatic",
+            "axis": [0.0, 1.0, 0.0],
+            "limits": { "lower_m": 0.0, "upper_m": 0.12 },
+            "parent": "arm",
+            "child": "rotor"
+          }
+        ]
+      },
+      "compliance": {
+        "bill_of_materials": [
+          { "part_id": "tube", "label": "Carbon Fiber Tube", "quantity": 1, "material_id": "carbon_fiber", "mass_kg": 0.18 },
+          { "part_id": "mount", "label": "Aluminum Motor Mount", "quantity": 1, "material_id": "al_7075", "mass_kg": 0.14 }
+        ],
+        "material_composition": [
+          { "material_id": "carbon_fiber", "label": "Carbon Fiber Composite", "fraction": 0.7 },
+          { "material_id": "al_7075", "label": "Aluminum 7075-T6", "fraction": 0.3 }
+        ],
+        "recyclability_rate": 0.45,
+        "dpp": {
+          "passport_id": "urn:dpp:eu:drone-rotor-arm-2026",
+          "sbom_ref": "https://example.com/sbom/rotor-arm-2026.json"
+        },
+        "disassembly": {
+          "steps": [
+            { "order": 1, "action": "release", "target": "rotor" },
+            { "order": 2, "action": "unfasten", "target": "mount", "tool": "hex_2.5" }
+          ]
+        },
+        "cra": { "conformance": "conformant", "support_period_until": "2031-09-05T00:00:00Z" }
+      }
+    },
+    {
+      "id": "rotor",
+      "label": "Rotor Assembly",
+      "geometry": {
+        "format": "usda",
+        "uri": "urn:example:cad/rotor-v2",
+        "hash": {
+          "algorithm": "sha256",
+          "value": "60303ae22b998861bce3b28f33eec1be758a213c86c93c076dbe9f558c11c752"
+        },
+        "locator": "/RotorAssembly"
+      },
+      "physical": {
+        "mass_kg": 0.09,
+        "center_of_mass": [0.5, 0.5, 0.5],
+        "friction": { "static": 0.2, "kinetic": 0.15 },
+        "stiffness": { "youngs_modulus_pa": 70000000000.0 }
+      },
+      "compliance": {
+        "bill_of_materials": [
+          { "part_id": "blades", "label": "PA12 Blades", "quantity": 2, "material_id": "pa12" }
+        ],
+        "material_composition": [
+          { "material_id": "pa12", "label": "Polyamide 12", "fraction": 1.0 }
+        ],
+        "recyclability_rate": 0.3,
+        "dpp": { "passport_id": "urn:dpp:eu:drone-rotor-2026" },
+        "cra": { "conformance": "unknown" }
+      }
+    }
+  ]
+}

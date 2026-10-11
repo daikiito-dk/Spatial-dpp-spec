@@ -1,0 +1,18 @@
+{
+  "valid": true,
+  "errors": [],
+  "warnings": [
+    {
+      "code": "W-02",
+      "path": "/objects/1/compliance/cra/conformance",
+      "message": "CRA conformance is `unknown`"
+    },
+    {
+      "code": "W-03",
+      "path": "/objects/1/compliance/disassembly",
+      "message": "compliance has no disassembly plan; rescue/recycling robots will lack machine-readable take-apart guidance"
+    }
+  ],
+  "document_id": "urn:product:drone-rotor-arm-2026",
+  "object_count": 2
+}

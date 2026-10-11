@@ -1,0 +1,82 @@
+{
+  "metadata": {
+    "spec_version": "0.1.0",
+    "document_id": "urn:test:fixture",
+    "name": "Fixture",
+    "created": "2026-01-01T00:00:00Z"
+  },
+  "objects": [
+    {
+      "id": "obj",
+      "label": "Object",
+      "geometry": {
+        "format": "gltf",
+        "uri": "urn:test:mesh",
+        "hash": {
+          "algorithm": "sha256",
+          "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "physical": {
+        "mass_kg": 1.0,
+        "center_of_mass": [0.5, 0.5, 0.5],
+        "friction": { "static": 0.5 },
+        "stiffness": { "youngs_modulus_pa": 1000000.0 },
+        "joints": [
+          {
+            "id": "j1",
+            "type": "revolute",
+            "axis": [1.0, 0.0, 0.0],
+            "limits": { "lower_deg": -10.0, "upper_deg": 10.0 },
+            "parent": "obj",
+            "child": "ghost"
+          }
+        ]
+      },
+      "compliance": {
+        "bill_of_materials": [
+          { "part_id": "p1", "label": "Part", "quantity": 1, "material_id": "m1" }
+        ],
+        "material_composition": [
+          { "material_id": "m1", "label": "Mat", "fraction": 0.6 },
+          { "material_id": "m2", "label": "Mat2", "fraction": 0.4 }
+        ],
+        "recyclability_rate": 0.5,
+        "dpp": { "passport_id": "urn:dpp:fixture" },
+        "disassembly": {
+          "steps": [ { "order": 1, "action": "unfasten", "target": "p1" } ]
+        },
+        "cra": { "conformance": "conformant" }
+      }
+    },
+    {
+      "id": "lid",
+      "label": "Lid",
+      "geometry": {
+        "format": "gltf",
+        "uri": "urn:test:lid",
+        "hash": {
+          "algorithm": "sha256",
+          "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "physical": {
+        "mass_kg": 0.5,
+        "center_of_mass": [0.5, 0.5, 0.5],
+        "friction": { "static": 0.4 },
+        "stiffness": { "youngs_modulus_pa": 500000.0 }
+      },
+      "compliance": {
+        "bill_of_materials": [
+          { "part_id": "cap", "label": "Cap", "quantity": 1, "material_id": "m2" }
+        ],
+        "material_composition": [
+          { "material_id": "m2", "label": "Mat2", "fraction": 1.0 }
+        ],
+        "recyclability_rate": 0.9,
+        "dpp": { "passport_id": "urn:dpp:lid" },
+        "cra": { "conformance": "partial" }
+      }
+    }
+  ]
+}

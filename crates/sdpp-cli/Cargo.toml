@@ -1,0 +1,15 @@
+[package]
+name = "sdpp-cli"
+description = "spatial-dpp command-line toolkit: validate / inspect / export / convert / glTF embed"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "spatial-dpp"
+path = "src/main.rs"
+
+[dependencies]
+sdpp-core = { path = "../sdpp-core" }
+serde_json = { workspace = true }

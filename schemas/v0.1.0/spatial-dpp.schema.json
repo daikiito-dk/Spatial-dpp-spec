@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spatial-dpp.org/schemas/v0.1.0/spatial-dpp.schema.json",
+  "title": "SpatialDppDocument",
+  "description": "Machine-readable spatial data structure binding a non-destructive geometry reference, physical properties, and EU compliance (BOM / DPP / CRA) attributes. Normative rules: SPEC.md. Unknown keys (e.g. x-*) are allowed everywhere.",
+  "type": "object",
+  "required": ["metadata", "objects"],
+  "additionalProperties": true,
+  "properties": {
+    "$schema": { "type": "string" },
+    "@context": { "type": ["string", "object", "array"] },
+    "@type": { "type": "string" },
+    "metadata": { "$ref": "#/$defs/documentMetadata" },
+    "objects": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/spatialObject" }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "uri": { "type": "string", "minLength": 3, "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:\\S+$" },
+    "rfc3339": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$" },
+
+    "documentMetadata": {
+      "type": "object",
+      "required": ["spec_version", "document_id", "name", "created"],
+      "additionalProperties": true,
+      "properties": {
+        "spec_version": { "const": "0.1.0" },
+        "document_id": { "$ref": "#/$defs/uri" },
+        "name": { "$ref": "#/$defs/nonEmptyString" },
+        "created": { "$ref": "#/$defs/rfc3339" },
+        "author": { "type": "string" },
+        "language": { "type": "string" }
+      }
+    },
+
+    "spatialObject": {
+      "type": "object",
+      "required": ["id", "label", "geometry", "physical", "compliance"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "geometry": { "$ref": "#/$defs/geometryRef" },
+        "physical": { "$ref": "#/$defs/physicalProperties" },
+        "compliance": { "$ref": "#/$defs/complianceRecord" }
+      }
+    },
+
+    "contentHash": {
+      "type": "object",
+      "required": ["algorithm", "value"],
+      "additionalProperties": true,
+      "properties": {
+        "algorithm": { "enum": ["sha256", "sha512"] },
+        "value": { "type": "string", "pattern": "^[a-f0-9]{64}$|^[a-f0-9]{128}$" }
+      }
+    },
+
+    "geometryRef": {
+      "type": "object",
+      "required": ["format", "uri"],
+      "additionalProperties": true,
+      "properties": {
+        "format": { "enum": ["gltf", "usda", "usdc", "step", "obj", "stl"] },
+        "uri": { "$ref": "#/$defs/uri" },
+        "hash": { "$ref": "#/$defs/contentHash" },
+        "locator": { "type": "string" },
+        "scale_hint_m": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "number", "exclusiveMinimum": 0 }
+        }
+      }
+    },
+
+    "frictionModel": {
+      "type": "object",
+      "required": ["static"],
+      "additionalProperties": true,
+      "properties": {
+        "static": { "type": "number", "minimum": 0 },
+        "kinetic": { "type": "number", "minimum": 0 }
+      }
+    },
+
+    "stiffness": {
+      "type": "object",
+      "required": ["youngs_modulus_pa"],
+      "additionalProperties": true,
+      "properties": {
+        "youngs_modulus_pa": { "type": "number", "exclusiveMinimum": 0 },
+        "shear_modulus_pa": { "type": "number", "exclusiveMinimum": 0 },
+        "poisson_ratio": { "type": "number", "minimum": 0, "exclusiveMaximum": 0.5 }
+      }
+    },
+
+    "jointLimits": {
+      "type": "object",
+      "minProperties": 2,
+      "additionalProperties": false,
+      "properties": {
+        "lower_deg": { "type": "number" },
+        "upper_deg": { "type": "number" },
+        "lower_m": { "type": "number" },
+        "upper_m": { "type": "number" }
+      }
+    },
+
+    "kinematicJoint": {
+      "type": "object",
+      "required": ["id", "type", "parent", "child"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "type": { "enum": ["revolute", "prismatic", "fixed", "spherical"] },
+        "axis": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "number" }
+        },
+        "limits": { "$ref": "#/$defs/jointLimits" },
+        "parent": { "$ref": "#/$defs/nonEmptyString" },
+        "child": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+
+    "physicalProperties": {
+      "type": "object",
+      "required": ["mass_kg", "center_of_mass", "friction", "stiffness"],
+      "additionalProperties": true,
+      "properties": {
+        "mass_kg": { "type": "number", "exclusiveMinimum": 0 },
+        "center_of_mass": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "number", "minimum": 0, "maximum": 1 }
+        },
+        "density_kg_m3": { "type": "number", "exclusiveMinimum": 0 },
+        "friction": { "$ref": "#/$defs/frictionModel" },
+        "stiffness": { "$ref": "#/$defs/stiffness" },
+        "joints": { "type": "array", "items": { "$ref": "#/$defs/kinematicJoint" } }
+      }
+    },
+
+    "bomEntry": {
+      "type": "object",
+      "required": ["part_id", "label", "quantity"],
+      "additionalProperties": true,
+      "properties": {
+        "part_id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "quantity": { "type": "integer", "minimum": 1 },
+        "material_id": { "type": "string" },
+        "mass_kg": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+
+    "materialFraction": {
+      "type": "object",
+      "required": ["material_id", "label", "fraction"],
+      "additionalProperties": true,
+      "properties": {
+        "material_id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "fraction": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 }
+      }
+    },
+
+    "dppRecord": {
+      "type": "object",
+      "required": ["passport_id"],
+      "additionalProperties": true,
+      "properties": {
+        "passport_id": { "$ref": "#/$defs/nonEmptyString" },
+        "sbom_ref": { "$ref": "#/$defs/uri" },
+        "hbom_ref": { "$ref": "#/$defs/uri" },
+        "repairability_score": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+
+    "disassemblyStep": {
+      "type": "object",
+      "required": ["order", "action", "target"],
+      "additionalProperties": true,
+      "properties": {
+        "order": { "type": "integer", "minimum": 1 },
+        "action": { "enum": ["unfasten", "cut", "lift", "release", "drain", "deactivate", "other"] },
+        "target": { "$ref": "#/$defs/nonEmptyString" },
+        "tool": { "type": "string" },
+        "hazard": { "enum": ["none", "thermal_runaway", "chemical", "asbestos", "electrical", "sharp", "crush"] },
+        "note": { "type": "string" }
+      }
+    },
+
+    "disassemblyPlan": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "plan_ref": { "$ref": "#/$defs/uri" },
+        "steps": { "type": "array", "items": { "$ref": "#/$defs/disassemblyStep" } }
+      }
+    },
+
+    "craLogEntry": {
+      "type": "object",
+      "required": ["timestamp", "event"],
+      "additionalProperties": true,
+      "properties": {
+        "timestamp": { "$ref": "#/$defs/rfc3339" },
+        "event": { "$ref": "#/$defs/nonEmptyString" },
+        "detail": { "type": "string" }
+      }
+    },
+
+    "craRecord": {
+      "type": "object",
+      "required": ["conformance"],
+      "additionalProperties": true,
+      "properties": {
+        "conformance": { "enum": ["conformant", "partial", "unknown"] },
+        "support_period_until": { "$ref": "#/$defs/rfc3339" },
+        "vulnerability_disclosure_uri": { "$ref": "#/$defs/uri" },
+        "logs": { "type": "array", "items": { "$ref": "#/$defs/craLogEntry" } }
+      }
+    },
+
+    "complianceRecord": {
+      "type": "object",
+      "required": ["bill_of_materials", "material_composition", "recyclability_rate", "dpp", "cra"],
+      "additionalProperties": true,
+      "properties": {
+        "bill_of_materials": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/bomEntry" }
+        },
+        "material_composition": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/materialFraction" }
+        },
+        "recyclability_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "dpp": { "$ref": "#/$defs/dppRecord" },
+        "disassembly": { "$ref": "#/$defs/disassemblyPlan" },
+        "cra": { "$ref": "#/$defs/craRecord" }
+      }
+    }
+  }
+}

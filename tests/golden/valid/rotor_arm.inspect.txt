@@ -1,0 +1,39 @@
+Document:   Quadrotor Rotor Arm Assembly
+ID:         urn:product:drone-rotor-arm-2026
+Spec:       spatial-dpp 0.1.0
+Created:    2026-09-05T08:30:00Z
+Objects:    2
+
+[arm] Quadrotor Arm
+  Geometry:    step urn:example:cad/rotor-arm-v2
+  Integrity:   sha512:9f86d081..
+  Locator:     #41=PRODUCT('rotor_arm')
+  Mass:        0.32 kg
+  COM:         (0.500, 0.500, 0.120) bbox-normalized
+  Friction:    static 0.35
+  Stiffness:   E = 135000000000 Pa, poisson 0.28
+  Density:     1550 kg/m3
+  Joints:      1
+    slide_motor: prismatic, parent=arm, child=rotor, axis=(0.000, 1.000, 0.000), limits=[0.000 m, 0.120 m]
+  BOM:         2 parts
+  Materials:   carbon_fiber 0.7, al_7075 0.3
+  Recyclable:  45.0%
+  Passport:    urn:dpp:eu:drone-rotor-arm-2026
+  SBOM:        https://example.com/sbom/rotor-arm-2026.json
+  CRA:         conformant (support until 2031-09-05T00:00:00Z)
+  Disassembly: 2 steps: 1 release(rotor); 2 unfasten(mount)
+
+[rotor] Rotor Assembly
+  Geometry:    usda urn:example:cad/rotor-v2
+  Integrity:   sha256:60303ae2..
+  Locator:     /RotorAssembly
+  Mass:        0.09 kg
+  COM:         (0.500, 0.500, 0.500) bbox-normalized
+  Friction:    static 0.2, kinetic 0.15
+  Stiffness:   E = 70000000000 Pa
+  BOM:         1 parts
+  Materials:   pa12 1
+  Recyclable:  30.0%
+  Passport:    urn:dpp:eu:drone-rotor-2026
+  CRA:         unknown
+  Disassembly: (none)

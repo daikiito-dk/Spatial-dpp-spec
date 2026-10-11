@@ -1,0 +1,40 @@
+Document:   Generic EV Battery Pack Module A
+ID:         urn:product:ev-battery-pack-2026
+Spec:       spatial-dpp 0.1.0
+Created:    2026-09-01T00:00:00Z
+Objects:    2
+
+[ev_pack] EV Battery Pack
+  Geometry:    gltf urn:example:meshes/ev-pack-v3
+  Integrity:   sha256:3fa85f64..
+  Locator:     #/nodes/0
+  Mass:        12.4 kg
+  COM:         (0.500, 0.500, 0.410) bbox-normalized
+  Friction:    static 0.6, kinetic 0.4
+  Stiffness:   E = 69000000000 Pa, G = 26000000000 Pa, poisson 0.33
+  Density:     1850 kg/m3
+  Joints:      1
+    hinge_lid: revolute, parent=ev_pack, child=pack_lid, axis=(0.000, 0.000, 1.000), limits=[-45.000 deg, 45.000 deg]
+  BOM:         3 parts
+  Materials:   al_6082 0.25, li_ion_cells 0.55, steel_galv 0.08, pc_abs 0.12
+  Recyclable:  62.0%
+  Passport:    urn:dpp:eu:ev-pack-2026
+  SBOM:        https://example.com/sbom/ev-pack-2026.json
+  HBOM:        urn:hbom:ev-pack-2026
+  CRA:         conformant (support until 2032-09-01T00:00:00Z)
+  Disassembly: 3 steps: 1 unfasten(m6_screw); 2 lift(cover_top); 3 deactivate(cell_array)
+
+[pack_lid] Service Cover Lid
+  Geometry:    gltf urn:example:meshes/ev-pack-lid-v3
+  Integrity:   sha256:1b4f0e98..
+  Locator:     #/nodes/1
+  Mass:        1.9 kg
+  COM:         (0.500, 0.500, 0.500) bbox-normalized
+  Friction:    static 0.5
+  Stiffness:   E = 2300000000 Pa
+  BOM:         1 parts
+  Materials:   pc_abs 1
+  Recyclable:  90.0%
+  Passport:    urn:dpp:eu:ev-pack-lid-2026
+  CRA:         partial
+  Disassembly: (none)

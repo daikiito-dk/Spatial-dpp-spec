@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "spec_version": "0.1.0",
+    "document_id": "urn:test:fixture",
+    "name": "Fixture",
+    "created": "2026-01-01T00:00:00Z"
+  },
+  "objects": [
+    {
+      "id": "obj",
+      "label": "Object",
+      "geometry": {
+        "format": "gltf",
+        "uri": "urn:test:mesh",
+        "hash": {
+          "algorithm": "sha256",
+          "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "physical": {
+        "mass_kg": 1.0,
+        "center_of_mass": [0.5, 0.5, 0.5],
+        "friction": { "static": 0.5 },
+        "stiffness": { "youngs_modulus_pa": 1000000.0 }
+      },
+      "compliance": {
+        "bill_of_materials": [
+          { "part_id": "p1", "label": "Part", "quantity": 1, "material_id": "m1" }
+        ],
+        "material_composition": [
+          { "material_id": "m1", "label": "Mat", "fraction": 0.55 },
+          { "material_id": "m2", "label": "Mat2", "fraction": 0.4 }
+        ],
+        "recyclability_rate": 0.5,
+        "dpp": { "passport_id": "urn:dpp:fixture" },
+        "disassembly": {
+          "steps": [ { "order": 1, "action": "unfasten", "target": "p1" } ]
+        },
+        "cra": { "conformance": "conformant" }
+      }
+    }
+  ]
+}

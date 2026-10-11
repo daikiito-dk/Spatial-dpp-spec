@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>spatial-dpp — geometry × physics × EU compliance in one open format</title>
+<meta name="description" content="spatial-dpp binds 3D geometry references, physical properties (mass, friction, stiffness, joints), and EU compliance data (BOM, Digital Product Passport, CRA) into one machine-readable open format.">
+<style>
+  :root {
+    --bg: #0b1020;
+    --panel: #111830;
+    --panel2: #0e1526;
+    --text: #e7ecf5;
+    --muted: #9aa7bd;
+    --accent: #7aa2ff;
+    --accent2: #4fd6c0;
+    --warn: #ffb86b;
+    --border: #223052;
+    --code-bg: #0a0f1d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.65;
+  }
+  a { color: var(--accent2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    padding: 18px 28px; border-bottom: 1px solid var(--border);
+    background: rgba(17, 24, 48, 0.85);
+    position: sticky; top: 0; backdrop-filter: blur(8px); z-index: 10;
+  }
+  header .brand { font-weight: 800; font-size: 1.15rem; letter-spacing: 0.02em; }
+  header .brand .tld { color: var(--accent2); }
+  .badge {
+    font-size: 0.72rem; font-weight: 700; padding: 2px 9px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--muted);
+  }
+  .badge.draft { color: var(--warn); border-color: #5a4326; }
+  header .spacer { flex: 1; }
+  .lang-switch { display: flex; gap: 6px; }
+  .lang-switch button {
+    background: var(--panel2); color: var(--muted); border: 1px solid var(--border);
+    border-radius: 8px; padding: 5px 12px; font-size: 0.8rem; cursor: pointer;
+  }
+  .lang-switch button.active { color: var(--text); border-color: var(--accent); }
+  main { max-width: 1080px; margin: 0 auto; padding: 40px 24px 80px; }
+  section { margin: 0 0 56px; }
+  h1 { font-size: clamp(1.6rem, 4vw, 2.5rem); line-height: 1.2; margin: 8px 0 14px; }
+  h2 { font-size: 1.35rem; margin: 0 0 14px; color: var(--text); }
+  h2 .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; margin-right: 8px; }
+  p.lead { font-size: 1.08rem; color: var(--muted); max-width: 46rem; }
+  .hero-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+  .hero-links a {
+    padding: 8px 16px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--panel); font-weight: 600; font-size: 0.92rem;
+  }
+  .hero-links a.primary { background: var(--accent); border-color: var(--accent); color: #08122b; }
+  .layers { display: flex; flex-wrap: wrap; gap: 14px; margin: 26px 0 10px; }
+  .layer {
+    flex: 1 1 240px; border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 20px; background: var(--panel);
+  }
+  .layer h3 { margin: 0 0 6px; font-size: 1.0rem; }
+  .layer .tag { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+  .layer p { margin: 4px 0 0; color: var(--muted); font-size: 0.88rem; }
+  .layer.geo { border-top: 3px solid var(--accent2); }
+  .layer.geo .tag { color: var(--accent2); }
+  .layer.phys { border-top: 3px solid var(--accent); }
+  .layer.phys .tag { color: var(--accent); }
+  .layer.comp { border-top: 3px solid var(--warn); }
+  .layer.comp .tag { color: var(--warn); }
+  .plus { align-self: center; font-size: 1.6rem; color: var(--muted); font-weight: 700; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px; overflow-x: auto; font-size: 0.82rem; line-height: 1.55;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  p code, li code, td code { background: var(--code-bg); border: 1px solid var(--border); padding: 1px 6px; border-radius: 6px; font-size: 0.85em; }
+  .cmt { color: #64748f; }
+  .k { color: #ff79c6; } .s { color: #a5d6a7; } .n { color: #ffb86b; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .card { border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; background: var(--panel); }
+  .card h3 { margin: 0 0 8px; font-size: 1rem; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .code-chip {
+    display: inline-block; font-family: ui-monospace, Menlo, monospace; font-size: 0.78rem;
+    font-weight: 700; padding: 1px 8px; border-radius: 6px; margin-right: 8px;
+    background: #1d2b4d; color: var(--accent);
+  }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; }
+  .chip { border: 1px solid var(--border); background: var(--panel2); color: var(--muted); border-radius: 999px; padding: 3px 12px; font-size: 0.8rem; }
+  .chip b { color: var(--text); font-family: ui-monospace, Menlo, monospace; }
+  footer {
+    border-top: 1px solid var(--border); padding: 26px; text-align: center;
+    color: var(--muted); font-size: 0.85rem;
+  }
+  footer a { color: var(--muted); }
+  #content-ja { display: none; }
+  body.jp #content-en { display: none; }
+  body.jp #content-ja { display: block; }
+  .notice { border: 1px solid var(--border); border-left: 3px solid var(--accent2); background: var(--panel2); border-radius: 10px; padding: 12px 16px; color: var(--muted); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">spatial<span class="tld">-dpp</span></div>
+  <span class="badge">v0.1.0</span>
+  <span class="badge draft">draft</span>
+  <div class="spacer"></div>
+  <div class="lang-switch">
+    <button id="btn-en" class="active" onclick="setLang('en')">EN</button>
+    <button id="btn-ja" onclick="setLang('ja')">日本語</button>
+  </div>
+</header>
+
+<!-- ============================== EN ============================== -->
+<main id="content-en">
+  <section>
+    <h1>Geometry, physics, and EU compliance — in one open, machine-readable format.</h1>
+    <p class="lead">
+      <b>spatial-dpp</b> binds a non-destructive 3D/CAD reference, the physical properties a
+      simulator needs, and the regulatory truth of a product (BOM, Digital Product Passport,
+      Cyber Resilience Act) into a single document with a strict validator, CLI, and WASM bindings.
+    </p>
+    <div class="layers">
+      <div class="layer geo">
+        <div class="tag">Layer 1</div>
+        <h3>Geometry Reference</h3>
+        <p>URI + SHA-256/512 content hash into glTF / USD / STEP / OBJ / STL. Non-destructive: your CAD stays where it is.</p>
+      </div>
+      <div class="plus">+</div>
+      <div class="layer phys">
+        <div class="tag">Layer 2</div>
+        <h3>Physical Properties</h3>
+        <p>Mass, center of mass, friction, stiffness, and kinematic joints with limits — in units physics engines consume directly.</p>
+      </div>
+      <div class="plus">+</div>
+      <div class="layer comp">
+        <div class="tag">Layer 3</div>
+        <h3>Compliance / DPP</h3>
+        <p>Bill of materials, material composition, recyclability, disassembly steps with hazards, SBOM/HBOM refs, CRA records.</p>
+      </div>
+    </div>
+    <div class="hero-links">
+      <a class="primary" href="https://github.com/daikiito-dk/Spatial-dpp-spec">GitHub Repository</a>
+      <a href="https://github.com/daikiito-dk/Spatial-dpp-spec/blob/main/SPEC.md">Read SPEC.md</a>
+      <a href="https://github.com/daikiito-dk/Spatial-dpp-spec/tree/main/schemas/v0.1.0">Schemas (JSON Schema / Protobuf / JSON-LD)</a>
+      <a href="https://github.com/daikiito-dk/Spatial-dpp-spec/blob/main/docs/gltf-extension/EXT_spatial_dpp.md">glTF Extension</a>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">01</span>One document, three truths</h2>
+<pre><span class="cmt">// examples/ev_battery_pack.json</span>
+{
+  <span class="k">"metadata"</span>: { <span class="s">"spec_version"</span>: <span class="s">"0.1.0"</span>, <span class="s">"document_id"</span>: <span class="s">"urn:product:ev-battery-pack-2026"</span>, <span class="s">"created"</span>: <span class="s">"2026-09-01T00:00:00Z"</span> },
+  <span class="k">"objects"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"ev_pack"</span>, <span class="k">"label"</span>: <span class="s">"EV Battery Pack"</span>,
+      <span class="k">"geometry"</span>:  { <span class="s">"format"</span>: <span class="s">"gltf"</span>, <span class="s">"uri"</span>: <span class="s">"urn:example:meshes/ev-pack-v3"</span>,
+                      <span class="s">"hash"</span>: { <span class="s">"algorithm"</span>: <span class="s">"sha256"</span>, <span class="s">"value"</span>: <span class="s">"3fa85f64…"</span> } },
+      <span class="k">"physical"</span>:  { <span class="s">"mass_kg"</span>: <span class="n">12.4</span>, <span class="s">"center_of_mass"</span>: [<span class="n">0.5</span>, <span class="n">0.5</span>, <span class="n">0.41</span>],
+                   <span class="s">"friction"</span>: { <span class="s">"static"</span>: <span class="n">0.6</span> }, <span class="s">"stiffness"</span>: { <span class="s">"youngs_modulus_pa"</span>: <span class="n">69000000000.0</span> } },
+      <span class="k">"compliance"</span>: {
+        <span class="s">"material_composition"</span>: [ { <span class="s">"material_id"</span>: <span class="s">"li_ion_cells"</span>, <span class="s">"fraction"</span>: <span class="n">0.55</span> } ],
+        <span class="s">"recyclability_rate"</span>: <span class="n">0.62</span>,
+        <span class="s">"dpp"</span>: { <span class="s">"passport_id"</span>: <span class="s">"urn:dpp:eu:ev-pack-2026"</span>, <span class="s">"sbom_ref"</span>: <span class="s">"https://…/sbom.json"</span> },
+        <span class="s">"disassembly"</span>: { <span class="s">"steps"</span>: [ { <span class="s">"order"</span>: <span class="n">3</span>, <span class="s">"action"</span>: <span class="s">"deactivate"</span>,
+                          <span class="s">"target"</span>: <span class="s">"cell_array"</span>, <span class="s">"hazard"</span>: <span class="s">"thermal_runaway"</span> } ] },
+        <span class="s">"cra"</span>: { <span class="s">"conformance"</span>: <span class="s">"conformant"</span>, <span class="s">"support_period_until"</span>: <span class="s">"2032-09-01T00:00:00Z"</span> }
+      }
+    }
+  ]
+}</pre>
+    <p class="lead">Units live in field names (<code>mass_kg</code>, <code>lower_deg</code>, <code>youngs_modulus_pa</code>).
+    Center of mass is bounding-box normalized <code>[0,1]</code>, so values survive unit and scale changes.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span>Strict, deterministic validation</h2>
+    <p class="lead">Two layers, one report: structural conformance (<code>V-01</code>) plus a semantic rule for
+    every physical and compliance value. Binary formats (MessagePack, Protobuf) produce identical reports —
+    every structural rule has a semantic twin, so nothing bypasses the rules.</p>
+    <table>
+      <tr><th>Code</th><th>Rule</th><th>Code</th><th>Rule</th></tr>
+      <tr><td><span class="code-chip">V-02</span></td><td>mass is finite and &gt; 0</td>
+          <td><span class="code-chip">V-09</span></td><td>material fractions sum to 1 ± 0.001</td></tr>
+      <tr><td><span class="code-chip">V-05</span></td><td>center of mass within [0,1]³</td>
+          <td><span class="code-chip">V-12</span></td><td>disassembly steps ordered &amp; targets resolve</td></tr>
+      <tr><td><span class="code-chip">V-06</span></td><td>joint axes are unit vectors; limits ordered</td>
+          <td><span class="code-chip">V-13</span></td><td>content hashes match their algorithm</td></tr>
+      <tr><td><span class="code-chip">V-08</span></td><td>joint parent/child resolve inside the document</td>
+          <td><span class="code-chip">V-14</span></td><td>timestamps are valid RFC 3339</td></tr>
+    </table>
+    <p class="lead">Plus warnings (<code>W-01</code> missing hash, <code>W-02</code> unknown CRA conformance,
+    <code>W-03</code> no disassembly plan). Full normative table: <a href="https://github.com/daikiito-dk/Spatial-dpp-spec/blob/main/SPEC.md#6-validation-rules-normative">SPEC.md §6</a>.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span>Developer tooling</h2>
+<pre><span class="cmt"># Rust reference implementation + CLI (no protoc needed)</span>
+$ cargo build --release
+$ target/release/spatial-dpp validate examples/ev_battery_pack.json
+{"valid":true,"errors":[],"warnings":[…],"object_count":2}
+$ target/release/spatial-dpp inspect examples/ev_battery_pack.json
+Document:   Generic EV Battery Pack Module A
+[ev_pack] EV Battery Pack
+  Mass:        12.4 kg          Recyclable:  62.0%
+  Disassembly: 3 steps: 1 unfasten(m6_screw); 2 lift(cover_top); 3 deactivate(cell_array)
+
+$ target/release/spatial-dpp export examples/ev_battery_pack.json --target=usd --out pack.usda
+$ target/release/spatial-dpp convert examples/ev_battery_pack.json --to msgpack
+$ target/release/spatial-dpp gltf-embed examples/ev_battery_pack.json scene.gltf --out scene.with-dpp.gltf</pre>
+    <div class="chip-row">
+      <span class="chip"><b>59 tests</b> golden · boundary · round-trip · CLI</span>
+      <span class="chip"><b>CI</b> fmt + clippy -D warnings + tests + wasm32</span>
+      <span class="chip"><b>WASM</b> TypeScript bindings (wasm-pack)</span>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">04</span>Formats &amp; integrations</h2>
+    <table>
+      <tr><th>Target</th><th>How</th></tr>
+      <tr><td><b>Canonical JSON / JSON-LD</b></td><td>Sorted keys, shortest round-trip decimals; JSON-LD adds <code>@context</code> for linked-data joins.</td></tr>
+      <tr><td><b>MessagePack / Protobuf</b></td><td>Binary transport; enums as strings for forward compatibility; semantic-identical round-trips proven by tests.</td></tr>
+      <tr><td><b>glTF 2.0</b></td><td><code>EXT_spatial_dpp</code> extension: one node = one object; loaders without support keep working.</td></tr>
+      <tr><td><b>OpenUSD</b></td><td>Deterministic <code>.usda</code> export: <code>physics:mass</code>, <code>PhysicsRevoluteJoint</code>, <code>sdpp:*</code> compliance dictionaries.</td></tr>
+      <tr><td><b>DeCAD / OD-BOM</b></td><td><code>disassembly.plan_ref</code> links to full disassembly constraint graphs of the sister project.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="num">05</span>Why it matters</h2>
+    <div class="grid2">
+      <div class="card">
+        <h3>Physical AI &amp; simulators</h3>
+        <p>Read one file and get collision-relevant physics: mass, center of mass, friction, stiffness, and joint limits — no conversion glue code.</p>
+      </div>
+      <div class="card">
+        <h3>Disaster response &amp; recycling robotics</h3>
+        <p>Machine-readable take-apart steps with per-step hazards (<code>thermal_runaway</code>, <code>asbestos</code>, <code>electrical</code>…) so a robot can plan safe deconstruction of, e.g., damaged EV batteries.</p>
+      </div>
+      <div class="card">
+        <h3>EU compliance built in</h3>
+        <p>Digital Product Passport identifiers, SBOM/HBOM references, and CRA conformance records travel with the asset — auditable at the same path as the geometry.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">06</span>Status &amp; roadmap</h2>
+    <div class="notice">
+      <b>v0.1.0 (draft)</b> — schema + normative spec, reference validator, four codecs, glTF extension,
+      USDA export, CLI, WASM bindings, deterministic test suite, CI.
+      Next: <code>.glb</code> container support, <code>x-*</code> extension preservation, passport signing,
+      then consortium submission. <a href="https://github.com/daikiito-dk/Spatial-dpp-spec/blob/main/README.md#roadmap">Details</a>.
+    </div>
+  </section>
+</main>
+
+<!-- ============================== JA ============================== -->
+<main id="content-ja">
+  <section>
+    <h1>ジオメトリ・物理特性・EUコンプライアンスを、1つのオープンな機械可読フォーマットに。</h1>
+    <p class="lead">
+      <b>spatial-dpp</b> は、3D/CADへの非破壊参照・シミュレータが要求する物理属性・製品の規制上の真実
+      （BOM、デジタルプロダクトパスポート、CRA）を1つのドキュメントに束ね、厳密なバリデータ・CLI・WASMバインディングを提供します。
+    </p>
+    <div class="layers">
+      <div class="layer geo">
+        <div class="tag">レイヤー 1</div>
+        <h3>ジオメトリ参照</h3>
+        <p>glTF / USD / STEP / OBJ / STL への URI + SHA-256/512 コンテンツハッシュ。CADデータは非破壊でその場に。</p>
+      </div>
+      <div class="plus">+</div>
+      <div class="layer phys">
+        <div class="tag">レイヤー 2</div>
+        <h3>物理属性</h3>
+        <p>質量・重心・摩擦・剛性・可動域付き関節。物理エンジンがそのまま使える単位で。</p>
+      </div>
+      <div class="plus">+</div>
+      <div class="layer comp">
+        <div class="tag">レイヤー 3</div>
+        <h3>コンプライアンス / DPP</h3>
+        <p>BOM、素材構成、リサイクル率、危険度付き分解手順、SBOM/HBOM参照、CRA記録。</p>
+      </div>
+    </div>
+    <div class="hero-links">
+      <a class="primary" href="https://github.com/daikiito-dk/Spatial-dpp-spec">GitHub リポジトリ</a>
+      <a href="https://github.com/daikiito-dk/Spatial-dpp-spec/blob/main/SPEC.md">SPEC.md（規範仕様）</a>
+      <a href="https://github.com/daikiito-dk/Spatial-dpp-spec/tree/main/schemas/v0.1.0">スキーマ（JSON Schema / Protobuf / JSON-LD）</a>
+      <a href="https://github.com/daikiito-dk/Spatial-dpp-spec/blob/main/docs/gltf-extension/EXT_spatial_dpp.md">glTF拡張仕様</a>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">01</span>1つのドキュメントに3つの真実</h2>
+<pre><span class="cmt">// examples/ev_battery_pack.json</span>
+{
+  <span class="k">"metadata"</span>: { <span class="s">"spec_version"</span>: <span class="s">"0.1.0"</span>, <span class="s">"document_id"</span>: <span class="s">"urn:product:ev-battery-pack-2026"</span> },
+  <span class="k">"objects"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"ev_pack"</span>, <span class="k">"label"</span>: <span class="s">"EV Battery Pack"</span>,
+      <span class="k">"geometry"</span>:  { <span class="s">"format"</span>: <span class="s">"gltf"</span>, <span class="s">"uri"</span>: <span class="s">"urn:example:meshes/ev-pack-v3"</span>,
+                      <span class="s">"hash"</span>: { <span class="s">"algorithm"</span>: <span class="s">"sha256"</span>, <span class="s">"value"</span>: <span class="s">"3fa85f64…"</span> } },
+      <span class="k">"physical"</span>:  { <span class="s">"mass_kg"</span>: <span class="n">12.4</span>, <span class="s">"center_of_mass"</span>: [<span class="n">0.5</span>, <span class="n">0.5</span>, <span class="n">0.41</span>], <span class="s">"friction"</span>: { <span class="s">"static"</span>: <span class="n">0.6</span> } },
+      <span class="k">"compliance"</span>: {
+        <span class="s">"material_composition"</span>: [ { <span class="s">"material_id"</span>: <span class="s">"li_ion_cells"</span>, <span class="s">"fraction"</span>: <span class="n">0.55</span> } ],
+        <span class="s">"recyclability_rate"</span>: <span class="n">0.62</span>,
+        <span class="s">"dpp"</span>: { <span class="s">"passport_id"</span>: <span class="s">"urn:dpp:eu:ev-pack-2026"</span> },
+        <span class="s">"disassembly"</span>: { <span class="s">"steps"</span>: [ { <span class="s">"order"</span>: <span class="n">3</span>, <span class="s">"action"</span>: <span class="s">"deactivate"</span>,
+                          <span class="s">"target"</span>: <span class="s">"cell_array"</span>, <span class="s">"hazard"</span>: <span class="s">"thermal_runaway"</span> } ] },
+        <span class="s">"cra"</span>: { <span class="s">"conformance"</span>: <span class="s">"conformant"</span> }
+      }
+    }
+  ]
+}</pre>
+    <p class="lead">単位はフィールド名に埋め込み（<code>mass_kg</code>、<code>lower_deg</code>、<code>youngs_modulus_pa</code>）。重心はバウンディングボックス正規化 <code>[0,1]</code> で、単位・スケール変更に強い設計です。</p>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span>厳密で決定論的なバリデーション</h2>
+    <p class="lead">2層構造で1つのレポート: 構造検証（<code>V-01</code>）+ 物理・コンプライアンス全ルールのセマンティック検証。
+    MessagePack / Protobuf でもJSONと同一のレポートになります（構造ルールには全て双子が存在するため、バイナリ経由で迂回できません）。</p>
+    <table>
+      <tr><th>コード</th><th>ルール</th><th>コード</th><th>ルール</th></tr>
+      <tr><td><span class="code-chip">V-02</span></td><td>質量は有限かつ &gt; 0</td>
+          <td><span class="code-chip">V-09</span></td><td>素材比率の合計は 1 ± 0.001</td></tr>
+      <tr><td><span class="code-chip">V-05</span></td><td>重心は [0,1]³ の範囲内</td>
+          <td><span class="code-chip">V-12</span></td><td>分解ステップの順序・参照先が解決可能</td></tr>
+      <tr><td><span class="code-chip">V-06</span></td><td>関節軸は単位ベクトル・可動域は順序どおり</td>
+          <td><span class="code-chip">V-13</span></td><td>コンテンツハッシュがアルゴリズムと整合</td></tr>
+      <tr><td><span class="code-chip">V-08</span></td><td>関節の親子参照がドキュメント内で解決</td>
+          <td><span class="code-chip">V-14</span></td><td>タイムスタンプは有効な RFC 3339</td></tr>
+    </table>
+    <p class="lead">警告もあり（<code>W-01</code> ハッシュ未指定、<code>W-02</code> CRA適合不明、<code>W-03</code> 分解手順なし）。規範テーブル全文: <a href="https://github.com/daikiito-dk/Spatial-dpp-spec/blob/main/SPEC.md#6-validation-rules-normative">SPEC.md §6</a>。</p>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span>開発者ツール</h2>
+<pre><span class="cmt"># Rust リファレンス実装 + CLI（protoc 不要）</span>
+$ cargo build --release
+$ target/release/spatial-dpp validate examples/ev_battery_pack.json
+{"valid":true,"errors":[],"warnings":[…],"object_count":2}
+$ target/release/spatial-dpp inspect examples/ev_battery_pack.json
+Document:   Generic EV Battery Pack Module A
+[ev_pack] EV Battery Pack
+  Mass:        12.4 kg          Recyclable:  62.0%
+  Disassembly: 3 steps: 1 unfasten(m6_screw); 2 lift(cover_top); 3 deactivate(cell_array)
+
+$ target/release/spatial-dpp export examples/ev_battery_pack.json --target=usd --out pack.usda
+$ target/release/spatial-dpp convert examples/ev_battery_pack.json --to msgpack
+$ target/release/spatial-dpp gltf-embed examples/ev_battery_pack.json scene.gltf --out scene.with-dpp.gltf</pre>
+    <div class="chip-row">
+      <span class="chip"><b>59テスト</b> golden · 境界値 · ラウンドトリップ · CLI</span>
+      <span class="chip"><b>CI</b> fmt + clippy -D warnings + テスト + wasm32</span>
+      <span class="chip"><b>WASM</b> TypeScriptバインディング（wasm-pack）</span>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">04</span>フォーマットと連携</h2>
+    <table>
+      <tr><th>ターゲット</th><th>方法</th></tr>
+      <tr><td><b>正準JSON / JSON-LD</b></td><td>ソート済みキー・最短小数。JSON-LDは <code>@context</code> でリンクトデータ連結。</td></tr>
+      <tr><td><b>MessagePack / Protobuf</b></td><td>バイナリ転送。列挙は前方互換の文字列。意味等価ラウンドトリップをテストで保証。</td></tr>
+      <tr><td><b>glTF 2.0</b></td><td><code>EXT_spatial_dpp</code> 拡張。ノード＝オブジェクト。未対応ローダーもそのまま動作。</td></tr>
+      <tr><td><b>OpenUSD</b></td><td>決定論的な <code>.usda</code> エクスポート: <code>physics:mass</code>、<code>PhysicsRevoluteJoint</code>、<code>sdpp:*</code> 辞書。</td></tr>
+      <tr><td><b>DeCAD / OD-BOM</b></td><td><code>disassembly.plan_ref</code> で姉妹プロジェクトの完全な分解制約グラフへ接続。</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="num">05</span>なぜ重要か</h2>
+    <div class="grid2">
+      <div class="card">
+        <h3>フィジカルAI・シミュレータ</h3>
+        <p>1ファイルから質量・重心・摩擦・剛性・関節可動域を直接読める。変換用のグルーコードが不要。</p>
+      </div>
+      <div class="card">
+        <h3>災害対応・リサイクルロボティクス</h3>
+        <p>ステップ単位の危険フラグ（<code>thermal_runaway</code>、<code>asbestos</code>、<code>electrical</code> など）付きの機械可読な分解手順で、破損EVバッテリーなどの安全な解体計画が可能。</p>
+      </div>
+      <div class="card">
+        <h3>EUコンプライアンス内蔵</h3>
+        <p>DPP識別子・SBOM/HBOM参照・CRA適合記録がジオメトリと同一のパスで監査可能。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">06</span>ステータスとロードマップ</h2>
+    <div class="notice">
+      <b>v0.1.0（draft）</b> — スキーマと規範仕様、リファレンスバリデータ、4コーデック、glTF拡張、USDAエクスポート、CLI、WASM、決定論的テスト、CI。
+      次は <code>.glb</code> 対応、<code>x-*</code> 拡張キーの保存、パスポート電子署名、その後コンソーシアムへの提案。
+      <a href="https://github.com/daikiito-dk/Spatial-dpp-spec/blob/main/README.md#roadmap">詳細</a>。
+    </div>
+  </section>
+</main>
+
+<footer>
+  spatial-dpp v0.1.0 (draft) · Apache-2.0 ·
+  <a href="https://github.com/daikiito-dk/Spatial-dpp-spec">GitHub</a> ·
+  <a href="https://github.com/daikiito-dk/DeCAD">Sister project: DeCAD / OD-BOM</a>
+</footer>
+
+<script>
+  function setLang(lang) {
+    document.body.classList.toggle('jp', lang === 'ja');
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+    document.getElementById('btn-ja').classList.toggle('active', lang === 'ja');
+  }
+</script>
+</body>
+</html>
